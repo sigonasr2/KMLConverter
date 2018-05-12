@@ -11,25 +11,31 @@ import java.io.IOException;
 import javax.swing.Box;
 import javax.swing.BoxLayout;
 import javax.swing.JButton;
+import javax.swing.JCheckBox;
 import javax.swing.JFileChooser;
 import javax.swing.JFrame;
 import javax.swing.JLabel;
+import javax.swing.JOptionPane;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 
 public class KMLWindow extends JFrame{
-	JFrame f = new JFrame("KMLConverter 1.0");
-	String input_fileloc="./input.txt", output_fileloc="./output.txt";
+	JFrame f = new JFrame("KMLConverter 1.1");
+	String input_fileloc="./input.txt", output_fileloc="./output.kml";
 	ButtonLabel input = null,output = null;
 	JTextArea status_window = null;
 	JScrollPane pane;
-	JPanel panel = new JPanel();
+	JPanel panel = new JPanel(),checkboxpanel = new JPanel();
+	JCheckBox latlong = new JCheckBox("Latitude values are first? (Lat,Long)");
 	KMLWindow() {
+		latlong.setBackground(new Color(170,180,200));
+		checkboxpanel.setLayout(new BoxLayout(checkboxpanel,BoxLayout.LINE_AXIS));
+		
 		try {
-			input=new ButtonLabel("Browse...",new File(".").getCanonicalPath(),"Input",this);
-			output=new ButtonLabel("Browse...",new File(".").getCanonicalPath(),"Output",this);
+			input=new ButtonLabel("Browse...",new File(input_fileloc).getCanonicalPath(),"Input",this);
+			output=new ButtonLabel("Browse...",new File(output_fileloc).getCanonicalPath(),"Output",this);
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
@@ -37,7 +43,11 @@ public class KMLWindow extends JFrame{
 		ActionListener convert_action = new ActionListener(){
 			@Override
 			public void actionPerformed(ActionEvent arg0) {
-				new KMLConverter(input_fileloc,output_fileloc);
+				new KMLConverter(input_fileloc,output_fileloc,latlong.isSelected());
+			}
+
+			private boolean InvalidLatitudeFound() {
+				return true;
 			}
 		};
 		
@@ -54,12 +64,19 @@ public class KMLWindow extends JFrame{
 		status_window.setBackground(new Color(0,0,96));
 		status_window.setForeground(new Color(220,220,220));
 		
+		checkboxpanel.add(latlong);
+		//checkboxpanel.add(Box.createHorizontalStrut(latlong.getWidth()/2));
+		
 		pane = new JScrollPane(status_window);
 		pane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
 		pane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
 		pane.setPreferredSize(new Dimension(320,64));
 		panel.setLayout(new BoxLayout(panel,BoxLayout.PAGE_AXIS));
 		input.Initialize(panel);
+		panel.add(checkboxpanel);
+		panel.add(Box.createVerticalStrut(6));
+		panel.add(new JSeparator());
+		panel.add(Box.createVerticalStrut(6));
 		output.Initialize(panel);
 		panel.add(Box.createVerticalStrut(6));
 		panel.add(new JSeparator());

@@ -13,10 +13,14 @@ import java.util.Scanner;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+import javax.swing.JOptionPane;
+
 public class KMLConverter {
 	final static String TEMPLATE = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 			+ "<kml xmlns=\"http://earth.google.com/kml/2.2\">\n"
+			+ "<Document>\n"
 			+ "{MARKERS}"
+			+ "</Document>\n"
 			+ "</kml>\n";
 	final static String MARKER_TEMPLATE = "<Placemark>\n"
 			+ "<Point>\n"
@@ -26,22 +30,41 @@ public class KMLConverter {
 	
 	static KMLWindow window;
 	
-	KMLConverter(String input_fileloc, String output_fileloc) {
+	KMLConverter(String input_fileloc, String output_fileloc, boolean flip_vals) {
 		String markers = "";
 		
 		File f = new File(input_fileloc);
 		Scanner reader;
 		int datapoints = 0;
+		boolean lastanswer=false;
 		try {
 			reader = new Scanner(f);
 			double numb1,numb2;
 			window.addStatusMessage("Reading file from "+input_fileloc+"...");
+			boolean flipped = false;
 			while (reader.hasNextLine()) {
 				String nextLine = reader.nextLine();
 				try {
 					Point2D.Double vals = SplitLine(nextLine);
-					numb1 = vals.x;
-					numb2 = vals.y;
+					if (flip_vals) {
+						double tmp = vals.y;
+						vals.y = vals.x;
+						vals.x = tmp;
+					}
+					if (!flipped && !lastanswer && InvalidLatitudeFound(vals.y)) {
+							lastanswer=true;
+							if (JOptionPane.showOptionDialog(window, "We detected Latitude values greater than 90 or less than -90. This is usually because your Longitude and Latitude values are flipped.\n\nWould you like us to flip the values for you?", "Invalid Latitude Values", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE, null, null, JOptionPane.YES_OPTION)==JOptionPane.YES_OPTION) {
+								window.addStatusMessage("Flipping values...");
+								flipped=true;
+							}
+					}
+					if (flipped) {
+						numb1 = vals.y;
+						numb2 = vals.x;
+					} else {
+						numb1 = vals.x;
+						numb2 = vals.y;
+					}
 					window.addStatusMessage("Read coords ("+(datapoints+1)+"): ["+numb1+","+numb2+"]");
 					markers = ((markers.length()>0)?markers+"\n":"")+MARKER_TEMPLATE.replace("{COORDINATES}", numb1+","+numb2+",0")+"\n";
 					datapoints++;
@@ -68,6 +91,10 @@ public class KMLConverter {
 		}
 	}
 	
+	private boolean InvalidLatitudeFound(double y) {
+		return y<-90 || y>90;
+	}
+
 	public static void main(String[] args) {
 		javax.swing.SwingUtilities.invokeLater(new Runnable() {
             public void run() {
