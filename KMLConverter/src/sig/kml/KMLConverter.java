@@ -26,6 +26,12 @@ public class KMLConverter {
 			+ "<Point>\n"
 			+ "<coordinates>{COORDINATES}</coordinates>\n"
 			+ "</Point>\n"
+			+ "<Style>\n"
+			+ "<IconStyle>\n"
+			+ "<Icon><href>http://maps.google.com/mapfiles/kml/shapes/placemark_circle_highlight.png</href></Icon>\n"
+			+ "<hotSpot x=\"0.5\" y=\"0.5\" xunits=\"fraction\" yunits=\"fraction\"/>\n"
+			+ "</IconStyle>\n"
+			+ "</Style>\n"
 			+ "</Placemark>\n";
 	
 	static KMLWindow window;
